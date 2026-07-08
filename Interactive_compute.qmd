@@ -1,0 +1,120 @@
+---
+title: "Interactive compute"
+engine: knitr
+---
+
+## {{< include ./_extensions/r-wasm/live/_knitr.qmd >}}
+
+```{webr}
+#| output: false
+#| echo: FALSE
+#| edit: false
+#| autorun: true
+
+library(babynames)
+library(ggplot2)
+library(magrittr)
+library(dplyr)
+
+
+
+```
+
+Histogram interacting with a javascript [Observable input](https://github.com/observablehq/inputs?tab=readme-ov-file) component:
+
+```{ojs}
+//| echo: false
+
+viewof sex_box = Inputs.checkbox(
+  ["M", "F"],
+  {
+    value: ["M", "F"],
+    label: "Shown sexes:",
+  }
+)
+
+```
+
+```{webr}
+#| echo: FALSE
+#| edit: false
+#| autorun: true
+#| input: 
+#|    - sex_box
+  
+nbins = 100
+data = babynames %>% filter( sex %in% sex_box  )
+
+ggplot( data , aes(x=n , fill = sex) ) + geom_histogram(bins = nbins) + scale_x_log10()
+```
+
+```{webr}
+#| echo: false
+#| edit: false
+#| autorun: true
+
+get_most_frequent <- function(babynames, select_sex, from = 1950) {
+  most_freq <- babynames |>
+    filter(sex == select_sex, year > from) |>
+    group_by(name) |>
+    summarise(average = mean(prop)) |>
+    arrange(desc(average))
+  
+  return(list(
+    babynames = babynames,
+    most_frequent = most_freq,
+    sex = select_sex,
+    from = from))
+}
+
+plot_top <- function(x, top = 10) {
+  topx <- x$most_frequent$name[1:top]
+  
+  p <- x$babynames |>
+    filter(name %in% topx, sex == x$sex, year > x$from) |>
+    ggplot(aes(x = year, y = prop, color = name)) +
+    geom_line() +
+    scale_color_brewer(palette = "Paired") +
+    theme_classic()
+  
+  return(p)
+}
+
+
+
+```
+
+A more complex examples with more interactive inputs (NB: it seems that when moving the slider the image get re-computed for each intermediate value, leading to some slowness sometimes) :
+
+```{webr}
+#| echo: FALSE
+#| edit: false
+#| autorun: true
+#| input:
+#|   - sex_show
+#|   - year
+#|   - n_names
+
+get_most_frequent(babynames, select_sex = sex_show , from = year ) |>
+  plot_top(top=n_names)
+
+
+
+```
+
+```{ojs}
+//| echo: false
+
+viewof sex_show = Inputs.radio(["M", "F"], {label: "Sex:",value:"F"})
+
+viewof year = Inputs.range([1880, 2010], {step: 10, label: "starting year:"})
+
+viewof n_names = Inputs.range([1, 12], {step: 1, label: "number of top names:"})
+```
+
+```{webr}
+for (x in 1:5) {
+  print(x ** 2)
+}
+
+```

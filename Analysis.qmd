@@ -1,0 +1,70 @@
+---
+title: "Analysis"
+---
+
+Load packages
+
+```{r}
+#| output: false
+
+
+library(babynames)
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(pheatmap)
+
+```
+
+Display first 10 lines of babynames table
+
+```{r}
+
+head(babynames) |> kable()
+
+```
+
+```{r}
+#| code-fold: true
+
+get_most_frequent <- function(babynames, select_sex, from = 1950) { most_freq <- babynames |> filter(sex == select_sex, year > from) |> group_by(name) |> summarise(average = mean(prop)) |> arrange(desc(average))
+
+return(list( babynames = babynames, most_frequent = most_freq, sex = select_sex, from = from)) }
+
+plot_top <- function(x, top = 10) { topx <- x$most_frequent$name[1:top]
+
+p <- x$babynames |>
+  filter(name %in% topx, sex == x$sex, year > x$from) |> ggplot(aes(x = year, y = prop, color = name)) + geom_line() + scale_color_brewer(palette = "Paired") + theme_classic()
+
+return(p) }
+
+```
+
+Figure top 10 Girls names
+
+```{r}
+#| label: fig-line-girls
+#| fig-cap: "Line plot displaying proportion of top 10 girl names by year"
+
+get_most_frequent(babynames, select_sex = "F") |>
+  plot_top()
+
+
+```
+
+In @fig-line-girls you can see that there has been a peak in popularity for 'Lisa', 'Jennifer' and 'Jessica'. Interesting! Let's have a look at the boys names:
+
+Figure top 10 Boys names
+
+```{r}
+#| label: fig-line-boys
+#| fig-cap: "Line plot displaying proportion of top 10 boys names by year"
+
+get_most_frequent(babynames, select_sex = "M") |>
+  plot_top()
+
+
+```
+
+@fig-line-boys shows that names that were popular before 1990 are relatively infrequent after 2000.

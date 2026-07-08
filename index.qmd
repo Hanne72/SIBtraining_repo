@@ -1,0 +1,22 @@
+---
+title: "SIB_FAIR_training"
+---
+
+*In this project we aim to visualize the trends of the most frequently used babynames from 1880 to 2017 in the United States. We do this by:*
+
+- *Understanding the different columns of the data set*
+
+- *Find the top 10 most frequently used baby names in the data for:*
+
+  - *girls*
+
+  - *boys*
+
+- *Plot the yearly trend of the top 10 baby names*
+
+![image_alt_text](path/or/url/to/image.png)
+
+```{r}
+
+
+```
