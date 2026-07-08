@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "Interactive_compute.html",
+    "href": "Interactive_compute.html",
+    "title": "Interactive compute",
+    "section": "",
+    "text": "Histogram interacting with a javascript Observable input component:\n\nviewof sex_box = Inputs.checkbox(\n  [\"M\", \"F\"],\n  {\n    value: [\"M\", \"F\"],\n    label: \"Shown sexes:\",\n  }\n)\n\n\n\n\n\n\nA more complex examples with more interactive inputs (NB: it seems that when moving the slider the image get re-computed for each intermediate value, leading to some slowness sometimes) :\n\nviewof sex_show = Inputs.radio([\"M\", \"F\"], {label: \"Sex:\",value:\"F\"})\n\nviewof year = Inputs.range([1880, 2010], {step: 10, label: \"starting year:\"})\n\nviewof n_names = Inputs.range([1, 12], {step: 1, label: \"number of top names:\"})\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfor (x in 1:5) {\n  print(x ** 2)\n}"
+  },
+  {
+    "objectID": "Interactive_compute.html#b58fc729-690b-4000-b19f-365a4093b2ff7b7b3c20696e636c756465202e2f5f657874656e73696f6e732f722d7761736d2f6c6976652f5f6b6e6974722e716d64203e7d7d",
+    "href": "Interactive_compute.html#b58fc729-690b-4000-b19f-365a4093b2ff7b7b3c20696e636c756465202e2f5f657874656e73696f6e732f722d7761736d2f6c6976652f5f6b6e6974722e716d64203e7d7d",
+    "title": "Interactive compute",
+    "section": "",
+    "text": "Histogram interacting with a javascript Observable input component:\n\nviewof sex_box = Inputs.checkbox(\n  [\"M\", \"F\"],\n  {\n    value: [\"M\", \"F\"],\n    label: \"Shown sexes:\",\n  }\n)\n\n\n\n\n\n\nA more complex examples with more interactive inputs (NB: it seems that when moving the slider the image get re-computed for each intermediate value, leading to some slowness sometimes) :\n\nviewof sex_show = Inputs.radio([\"M\", \"F\"], {label: \"Sex:\",value:\"F\"})\n\nviewof year = Inputs.range([1880, 2010], {step: 10, label: \"starting year:\"})\n\nviewof n_names = Inputs.range([1, 12], {step: 1, label: \"number of top names:\"})\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nfor (x in 1:5) {\n  print(x ** 2)\n}"
+  },
+  {
+    "objectID": "Analysis.html",
+    "href": "Analysis.html",
+    "title": "Analysis",
+    "section": "",
+    "text": "Load packages\n\nlibrary(babynames)\nlibrary(knitr)\nlibrary(dplyr)\nlibrary(ggplot2)\nlibrary(tidyr)\nlibrary(pheatmap)\n\nDisplay first 10 lines of babynames table\n\nhead(babynames) |&gt; kable()\n\n\n\n\nyear\nsex\nname\nn\nprop\n\n\n\n\n1880\nF\nMary\n7065\n0.0723836\n\n\n1880\nF\nAnna\n2604\n0.0266790\n\n\n1880\nF\nEmma\n2003\n0.0205215\n\n\n1880\nF\nElizabeth\n1939\n0.0198658\n\n\n1880\nF\nMinnie\n1746\n0.0178884\n\n\n1880\nF\nMargaret\n1578\n0.0161672\n\n\n\n\n\n\n\nCode\nget_most_frequent &lt;- function(babynames, select_sex, from = 1950) { most_freq &lt;- babynames |&gt; filter(sex == select_sex, year &gt; from) |&gt; group_by(name) |&gt; summarise(average = mean(prop)) |&gt; arrange(desc(average))\n\nreturn(list( babynames = babynames, most_frequent = most_freq, sex = select_sex, from = from)) }\n\nplot_top &lt;- function(x, top = 10) { topx &lt;- x$most_frequent$name[1:top]\n\np &lt;- x$babynames |&gt;\n  filter(name %in% topx, sex == x$sex, year &gt; x$from) |&gt; ggplot(aes(x = year, y = prop, color = name)) + geom_line() + scale_color_brewer(palette = \"Paired\") + theme_classic()\n\nreturn(p) }\n\n\nFigure top 10 Girls names\n\nget_most_frequent(babynames, select_sex = \"F\") |&gt;\n  plot_top()\n\n\n\n\n\n\n\nFigure 1: Line plot displaying proportion of top 10 girl names by year\n\n\n\n\n\nIn Figure 1 you can see that there has been a peak in popularity for ‘Lisa’, ‘Jennifer’ and ‘Jessica’. Interesting! Let’s have a look at the boys names:\nFigure top 10 Boys names\n\nget_most_frequent(babynames, select_sex = \"M\") |&gt;\n  plot_top()\n\n\n\n\n\n\n\nFigure 2: Line plot displaying proportion of top 10 boys names by year\n\n\n\n\n\nFigure 2 shows that names that were popular before 1990 are relatively infrequent after 2000.\n\n# get most frequent girl names from 2010 onwards\nfrom_year &lt;- 2010\nmost_freq_girls &lt;- get_most_frequent(babynames, select_sex = \"F\",\n                                     from = from_year)\n\n# plot top 5 girl names\nmost_freq_girls |&gt;\n  plot_top(top = 5)\n\n# plot top 10 girl names\nmost_freq_girls |&gt;\n  plot_top(top = 10)\n\n# get top 30 girl names in a matrix\n# with names in rows and years in columns\nprop_df &lt;- babynames |&gt; \n  filter(name %in% most_freq_girls$most_frequent$name[1:30] & sex == \"F\") |&gt;\n  filter(year &gt;= from_year) |&gt; \n  select(year, name, prop) |&gt;\n  pivot_wider(names_from = year,\n              values_from = prop)\n\nprop_mat &lt;- as.matrix(prop_df[, 2:ncol(prop_df)])\nrownames(prop_mat) &lt;- prop_df$name\n\n# create heatmap\npheatmap(prop_mat, cluster_cols = FALSE, scale = \"row\")\n\n\n\n\n\n\n\n\n\n\n\n(a) Top 5\n\n\n\n\n\n\n\n\n\n\n\n(b) Top 10\n\n\n\n\n\n\n\n\n\n\n\n\n\n(c) Top 30\n\n\n\n\n\n\n\nFigure 3: Most popular girl names from 2010 onwards\n\n\n\n\nIn Figure 3 (a) and Figure 3 (a) the line plots are shown. To view trends of many names at once, Figure 3 (c) displays a heatmap."
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site\n\n1 + 1\n\n[1] 2"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "SIB_FAIR_training",
+    "section": "",
+    "text": "In this project we aim to visualize the trends of the most frequently used babynames from 1880 to 2017 in the United States. We do this by:\n\nUnderstanding the different columns of the data set\nFind the top 10 most frequently used baby names in the data for:\n\ngirls\nboys\n\nPlot the yearly trend of the top 10 baby names\n\n\n\n\nimage_alt_text"
+  }
+]
